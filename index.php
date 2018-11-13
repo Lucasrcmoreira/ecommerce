@@ -8,7 +8,11 @@ $app->config('debug', true);
 
 $app->get('/', function() {
     
-	echo "OK";
+	$sql = new NC\DB\sql();
+
+	$result = $sql->select("SELECT * FROM tb_users");
+
+	echo json_encode($result);
 
 });
 
