@@ -462,7 +462,7 @@ z-index: 999;}
   background:#fa8072;
   color:#FFF;
   display: inline-block;
-  margin-left: 15px;
+  margin-left: px;
   padding: 1px 10px;
 }
 .latest-product .owl-nav div:hover, .brand-wrapper .owl-nav div:hover, .related-products-wrapper .owl-nav div:hover {color: #FFF; background:#f95f5f;}
@@ -481,8 +481,8 @@ z-index: 999;}
 }
 
 .brand-wrapper .owl-nav div {
-  background:#fa8072;
-  color:#FFF;
+  background:#000;
+  color:#000;
   display: inline-block;
   margin-left: 15px;
   padding: 1px 10px;
