@@ -85,6 +85,41 @@ class User extends Model{
 		$this->setData($result[0]);
 
 	}
+
+	public function get($iduser){
+		$sql = new Sql();
+		$result = $sql->select("SELECT * FROM tb_users u INNER JOIN tb_persons p USING(idperson) WHERE u.iduser = :iduser",array(
+			":iduser"=>$iduser
+		));
+
+		return $this->setData($result[0]);
+
+	}
+
+	public function update(){
+
+		$sql = new Sql();
+
+		$result = $sql->select("CALL sp_usersupdate_save(:iduser, :desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)",array(
+					":iduser"=>$this->getiduser(),
+					":desperson"=>$this->getdesperson(),
+					":deslogin"=>$this->getdeslogin(),
+					":despassword"=>$this->getdespassword(),
+					":desemail"=>$this->getdesemail(),
+					":nrphone"=>$this->getnrphone(),
+					":inadmin"=>$this->getinadmin()
+		));
+
+		$this->setData($result[0]);
+	}
+
+	public function delete(){
+		$sql = new Sql();
+
+		$sql->query("CALL sp_users_delete(:iduser)",array(
+				":iduser"=>$this->getiduser()
+		));
+	}
 }
 
 ?>
