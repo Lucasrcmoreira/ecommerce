@@ -7,6 +7,7 @@ use \NC\Model;
 class User extends Model{
 
 	const SESSION = "User";
+	const SECRET = "HcodePhp7_Secret";
 
 	public static function login($login,$password){
 
@@ -119,6 +120,43 @@ class User extends Model{
 		$sql->query("CALL sp_users_delete(:iduser)",array(
 				":iduser"=>$this->getiduser()
 		));
+	}
+
+	public static function getForgot($email){
+
+		$sql = new Sql();
+
+		$result = $sql->select("SELECT * FROM tb_persons p INNER JOIN tb_users u USING(idperson) WHERE p.desemail = :email",array(
+						":email"=>$email
+		));
+
+		if(count($result) === 0){
+			throw new \Exception("Não foi possivel recuperar a senha entre em contato com nossa central de suporte");
+		}else{
+			$data = $result[0];
+
+			$resultSql = $sql->select("CALL sp_userspasswordsrecoveries_create(:iduser, :desip)",array(":iduser"=>$data["iduser"],
+						":desip"=>$_SERVER["REMOTE_ADDR"]
+			));
+			if(count($resultSql) === 0 ){
+				throw new \Exception("Não foi possivel recuperar a senha");
+			}else{
+				$dataRecovery = $resultSql[0];
+
+				$code = base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128,User::SECRET, $dataRecovery["idrecovery"], MCRYPT_MODE_ECB));
+
+				$link = "http://http://www.lucascommerce.com.br/admin/forgot/reset?code=$code";
+
+				$Mailer = new Mailer($data["desemail"],$data["desperson"],"Redefinição de senha Lucas - Ecommerce Store","forgot",array(
+													"name"=>$data["desperson"],
+													"link"=>$link
+				));
+
+				$Mailer->send();
+
+				return $data;
+			}
+		}
 	}
 }
 
