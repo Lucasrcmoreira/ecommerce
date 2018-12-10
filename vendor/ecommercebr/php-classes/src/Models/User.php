@@ -3,6 +3,9 @@ namespace NC\Models;
 
 use \NC\DB\Sql;
 use \NC\Model;
+use \NC\Mailer;
+
+
 
 class User extends Model{
 
@@ -122,42 +125,89 @@ class User extends Model{
 		));
 	}
 
-	public static function getForgot($email){
+	public static function getForgot($email)
+	{
+    	$sql = new Sql();
 
-		$sql = new Sql();
+    	$results = $sql->select("SELECT * FROM tb_persons p INNER JOIN tb_users u 
+    							 USING(idperson) WHERE p.desemail = :email;",
+    							 array(":email"=>$email));
 
-		$result = $sql->select("SELECT * FROM tb_persons p INNER JOIN tb_users u USING(idperson) WHERE p.desemail = :email",array(
-						":email"=>$email
-		));
+    	if(count($results) === 0 ){
 
-		if(count($result) === 0){
-			throw new \Exception("Não foi possivel recuperar a senha entre em contato com nossa central de suporte");
-		}else{
-			$data = $result[0];
+    		throw new \Exception("não foi possivel recuperar senha, entrar em contato com suporte");
+    		
+    	}
+    	else{
 
-			$resultSql = $sql->select("CALL sp_userspasswordsrecoveries_create(:iduser, :desip)",array(":iduser"=>$data["iduser"],
-						":desip"=>$_SERVER["REMOTE_ADDR"]
-			));
-			if(count($resultSql) === 0 ){
-				throw new \Exception("Não foi possivel recuperar a senha");
-			}else{
-				$dataRecovery = $resultSql[0];
+    		$data = $results[0];
+    		$resultQuery = $sql->select("CALL sp_userspasswordsrecoveries_create(:iduser, :desip)",
+    				array(":iduser"=>$data["iduser"],
+    					  ":desip"=>$_SERVER["REMOTE_ADDR"] 
+    					));
 
-				$code = base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128,User::SECRET, $dataRecovery["idrecovery"], MCRYPT_MODE_ECB));
+    		if(count($resultQuery) === 0){
 
-				$link = "http://http://www.lucascommerce.com.br/admin/forgot/reset?code=$code";
+    			throw new \Exception("não foi possivel recuperar senha, entrar em contato com suporte");
+    		}
+    		else{
 
-				$Mailer = new Mailer($data["desemail"],$data["desperson"],"Redefinição de senha Lucas - Ecommerce Store","forgot",array(
-													"name"=>$data["desperson"],
-													"link"=>$link
-				));
+    			$dataRecovery = $resultQuery[0];
 
-				$Mailer->send();
+    			$Chave =  random_bytes(32);
+				$Cifra =  'AES-256-CBC';
+				$IV = random_bytes(openssl_cipher_iv_length($Cifra)); 
+
+				$Texto = openssl_encrypt($dataRecovery["idrecovery"], $Cifra, $Chave, OPENSSL_RAW_DATA, $IV);
+
+				$code = base64_encode($IV.$Texto);
+
+				$link = "http://www.lucascommerce.com.br/admin/forgot/reset?code=$code";
+
+				$mailer = new Mailer($data["desemail"],$data["desperson"],"redefinir senha ecommerce", "forgot", array("name"=>$data["desperson"],"link"=>$link));
+
+				$mailer->send();
 
 				return $data;
-			}
-		}
-	}
+
+    		}
+
+    	}
+
+
+
+ 	}
+
+	public static function validForgotDecrypt($result)
+ 	{
+	     $result = base64_decode($result);
+	     $code = mb_substr($result, openssl_cipher_iv_length('aes-256-cbc'), null, '8bit');
+	     $iv = mb_substr($result, 0, openssl_cipher_iv_length('aes-256-cbc'), '8bit');;
+	     $idrecovery = openssl_decrypt($code, 'aes-256-cbc', User::SECRET, 0, $iv);
+	     $sql = new Sql();
+	     $results = $sql->select("
+	         SELECT *
+	         FROM tb_userspasswordsrecoveries a
+	         INNER JOIN tb_users b USING(iduser)
+	         INNER JOIN tb_persons c USING(idperson)
+	         WHERE
+	         a.idrecovery = :idrecovery
+	         AND
+	         a.dtrecovery IS NULL
+	         AND
+	         DATE_ADD(a.dtregister, INTERVAL 1 HOUR) >= NOW();
+	     ", array(
+	         ":idrecovery"=>$idrecovery
+	     ));
+	     if (count($results) === 0)
+	     {
+	         throw new \Exception("Não foi possível recuperar a senha.");
+	     }
+	     else
+	     {
+	         return $results[0];
+	     }
+ 	}
 }
 
 ?>

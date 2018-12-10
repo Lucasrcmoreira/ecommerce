@@ -2,6 +2,7 @@
 namespace NC;
 
 use Rain\Tpl;
+use PHPMailer\PHPMailer\PHPMailer; 
 
 class Mailer{
 
@@ -14,8 +15,6 @@ class Mailer{
 
 	public function __construct($toAddress, $toName,$subject, $tplName, $data = array())
 	{
-
-		use PHPMailer\PHPMailer\PHPMailer; 
 
 
 		$config = array(
@@ -31,6 +30,7 @@ class Mailer{
 		foreach ($data as $key => $value) {
 			$tpl->assign($key,$value);
 		}
+
 
 		$html = $tpl->draw($tplName,true);
 

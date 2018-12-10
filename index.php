@@ -132,9 +132,9 @@ $app->post("/admin/users/:iduser",function($iduser){
 
 $app->get("/admin/forgot",function(){
 
-	$page = new PageAdm([
-		"header"=>false,
-		"footer"=>false
+	$page = new PageAdm(["header"=>false,
+						 "footer"=>false
+	
 	]);
 
 	$page->setTpl("forgot");
@@ -143,22 +143,19 @@ $app->get("/admin/forgot",function(){
 
 $app->post("/admin/forgot",function(){
 
-	$email = User::getForgot($_POST["email"]);
+	$user = User::getForgot($_POST["email"]);
 
-	header("Location: /admin/forgot/sent");
+	header("Location: /admin/forgot/send");
 	exit;
 });
 
-$app->get("/admin/forgot/sent",function(){
+$app->get("/admin/forgot/send",function(){
 
-	$page = new PageAdm([
-			"header"=>false,
-			"footer"=>false
-	]);
-	
+	$page = new PageAdm(["header"=>false,"footer"=>false]);
+
 	$page->setTpl("forgot-sent");
-});
 
+});
 
 $app->run();
 
