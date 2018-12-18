@@ -178,38 +178,58 @@ class User extends Model{
  	}
 
 	public static function validForgot($Resultado)
- {
-     $Resultado = base64_decode($Resultado);
-     $Cifra =  'AES-256-CBC';
-	 $TextoCifrado = mb_substr($Resultado, openssl_cipher_iv_length($Cifra), null, '8bit');
-	
-	 $IV = mb_substr($Resultado, 0, openssl_cipher_iv_length($Cifra), '8bit');
-	 $idrecovery = openssl_decrypt($TextoCifrado, $Cifra, User::SECRET, OPENSSL_RAW_DATA, $IV);
+ 	{
+	     $Resultado = base64_decode($Resultado);
+	     $Cifra =  'AES-256-CBC';
+		 $TextoCifrado = mb_substr($Resultado, openssl_cipher_iv_length($Cifra), null, '8bit');
+		
+		 $IV = mb_substr($Resultado, 0, openssl_cipher_iv_length($Cifra), '8bit');
+		 $idrecovery = openssl_decrypt($TextoCifrado, $Cifra, User::SECRET, OPENSSL_RAW_DATA, $IV);
 
-     $sql = new Sql();
-     $results = $sql->select("
-         SELECT *
-         FROM tb_userspasswordsrecoveries a
-         INNER JOIN tb_users b USING(iduser)
-         INNER JOIN tb_persons c USING(idperson)
-         WHERE
-         a.idrecovery = :idrecovery
-         AND
-         a.dtrecovery IS NULL
-         AND
-         DATE_ADD(a.dtregister, INTERVAL 1 HOUR) >= NOW();
-     ", array(
-         ":idrecovery"=>$idrecovery
-     ));
-     if (count($results) === 0)
-     {
-         throw new \Exception("Não foi possível recuperar a senha.");
-     }
-     else
-     {
-         return $results[0];
-     }
- }
+	     $sql = new Sql();
+	     $results = $sql->select("
+	         SELECT *
+	         FROM tb_userspasswordsrecoveries a
+	         INNER JOIN tb_users b USING(iduser)
+	         INNER JOIN tb_persons c USING(idperson)
+	         WHERE
+	         a.idrecovery = :idrecovery
+	         AND
+	         a.dtrecovery IS NULL
+	         AND
+	         DATE_ADD(a.dtregister, INTERVAL 1 HOUR) >= NOW();
+	     ", array(
+	         ":idrecovery"=>$idrecovery
+	     ));
+	     if (count($results) === 0)
+	     {
+	         throw new \Exception("Não foi possível recuperar a senha.");
+	     }
+	     else
+	     {
+	         return $results[0];
+	     }
+ 	}
+
+
+	public static function setForgotUsed($idrecovery){
+
+		$sql = new Sql();
+		$sql->query("UPDATE tb_userspasswordsrecoveries SET dtrecovery = NOW() WHERE idrecovery = :idrecovery ",array(":idrecovery"=>$idrecovery
+		));
+
+	}
+
+	public function setPassword($password){
+
+		$sql = new Sql();
+		$sql->query("UPDATE tb_users SET despassword = :password WHERE iduser = :iduser",
+			array(":password"=>$password,
+				  ":iduser"=>$this->getiduser()
+		));
+	}
+
+
 }
 
 ?>

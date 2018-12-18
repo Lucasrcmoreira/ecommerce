@@ -172,6 +172,27 @@ $app->get("/admin/forgot/reset",function(){
 
 });
 
+$app->post("/admin/forgot/reset",function(){
+
+	$forgot = User::validForgot($_POST["code"]);
+
+	User::setForgotUsed($forgot["idrecovery"]);
+
+	$password = password_hash($_POST["password"], PASSWORD_DEFAULT, ["cost"=>12]);
+
+	$user = new User();
+	$user->get((int)$forgot["iduser"]);
+	$user->setPassword($password);
+
+	$page = new PageAdm(["header"=>false,
+						 "footer"=>false
+	]);
+
+	$page->setTpl("forgot-reset-success");
+
+
+});
+
 
 $app->run();
 
