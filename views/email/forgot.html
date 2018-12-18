@@ -365,7 +365,7 @@
   <div align="center">
     <table class="head-wrap w320 full-width-gmail-android" bgcolor="#f9f8f8" cellpadding="0" cellspacing="0" border="0">
       <tr>
-        <td background="https://www.filepicker.io/api/file/UOesoVZTFObSHCgUDygC" bgcolor="#ffffff" width="100%" height="8" valign="top">
+        <td background="https://www.freewebheaders.com/wordpress/wp-content/gallery/christmas/creative-christmas-balls-ornaments-web-header.jpg" bgcolor="#ffffff" width="100%" height="8" valign="top">
           <!--[if gte mso 9]>
           <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="mso-width-percent:1000;height:8px;">
             <v:fill type="tile" src="https://www.filepicker.io/api/file/UOesoVZTFObSHCgUDygC" color="#ffffff" />
@@ -384,7 +384,7 @@
           <div class="content">
             <span class="brand">
               <a href="#">
-                Hcode Store
+                Lucas Ecommerce Store
               </a>
             </span>
           </div>
@@ -429,7 +429,7 @@
                           <tr>
                             <td class="body-signature-cell">
                               <p>Obrigado!</p>
-                              <p class="body-signature"><img src="https://www.filepicker.io/api/file/2R9HpqboTPaB4NyF35xt" alt="Company Name"></p>
+                              <p class="body-signature"><img src="https://cdn.store-assets.com/s/158547/f/489177.png" alt="Lucas Ecommerce Store"></p>
                             </td>
                           </tr>
                         </table>

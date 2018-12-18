@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Forgot Password</title>
+  <title>AdminLTE 2 | Lockscreen</title>
   <!-- Tell the browser to be responsive to screen width -->
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <!-- Bootstrap 3.3.6 -->
@@ -26,7 +26,7 @@
 <!-- Automatic element centering -->
 <div class="lockscreen-wrapper">
   <div class="lockscreen-logo">
-    <a href="/adm/index2.html"><b>Redefir |</b>Senha</a>
+    <a href="/res/admin/index2.html"><b>LucasEcommerce |</b>Store</a>
   </div>
 
   <!-- START LOCK SCREEN ITEM -->
@@ -50,7 +50,7 @@
     Digite seu e-mail e receba as instruções para redefinir a sua senha.
   </div>
   <div class="text-center">
-    <a href="/admin/login">Ou fazer login com usuário diferente</a>
+    <a href="/admin/login">Ou fazer login com outro usuario </a>
   </div>
   <div class="lockscreen-footer text-center">
     Copyright &copy; 2014-2016 <b><a href="http://almsaeedstudio.com" class="text-black">Almsaeed Studio</a></b><br>

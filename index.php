@@ -157,6 +157,22 @@ $app->get("/admin/forgot/send",function(){
 
 });
 
+$app->get("/admin/forgot/reset",function(){
+
+	$user = User::validForgot($_GET["code"]);
+
+	$page = new PageAdm(["header"=>false,
+					 	 "footer"=>false
+	
+	]);
+	$page->setTpl("forgot-reset",array(
+								"name"=>$user["desperson"],
+								"code"=>$_GET["code"]
+	));
+
+});
+
+
 $app->run();
 
  ?>
