@@ -8,6 +8,7 @@ use \Slim\Slim;
 use \NC\Page;
 use \NC\PageAdm;
 use \NC\Models\User;
+use \NC\Models\Category;
 
 $app = new Slim();
 
@@ -190,9 +191,37 @@ $app->post("/admin/forgot/reset",function(){
 
 	$page->setTpl("forgot-reset-success");
 
+});
+
+$app->get("/admin/categories",function(){
+
+	$categories = Category::listAll();
+
+	$page = new PageAdm();
+	$page->setTpl("categories",[
+					'categories'=>$categories
+	]);
 
 });
 
+$app->get("/admin/categories/create",function(){
+
+	$page = new PageAdm();
+	$page->setTpl("categories-create");
+
+});
+
+$app->post("/admin/categories/create",function(){
+
+	$category = new Category();
+
+	$category->setData($_POST);
+
+	$category->save();
+
+	header('Location: /admin/categories');
+
+});
 
 $app->run();
 
