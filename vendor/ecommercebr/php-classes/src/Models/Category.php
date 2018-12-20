@@ -30,6 +30,8 @@ class Category extends Model{
 		));
 
 		$this->setData($result[0]);
+
+		Category::updateFileCategory();
 	}
 
 	public function get($idcategory){
@@ -41,6 +43,7 @@ class Category extends Model{
 		));
 
 		$this->setData($result[0]);
+
 	}
 
 	public function delete(){
@@ -51,8 +54,24 @@ class Category extends Model{
 									":idcategory"=>$this->getidcategory()
 		));
 
+		Category::updateFileCategory();
+
 	}
 
+	public static function updateFileCategory(){
+
+		$Categories = Category::listAll();
+
+		$Category = [];
+
+		foreach ($Categories as $row) {
+			
+			array_push($Category,'<li><a href="/categories/'.$row['idcategory'].'">'.$row['descategory'].'</a></li>'.'<br>');
+		}
+
+		file_put_contents($_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR."views".DIRECTORY_SEPARATOR."categories-menu.html",implode('', $Category ));
+
+	}
 
 
 }
