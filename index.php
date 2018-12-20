@@ -195,6 +195,8 @@ $app->post("/admin/forgot/reset",function(){
 
 $app->get("/admin/categories",function(){
 
+	User::verifyLogin();
+
 	$categories = Category::listAll();
 
 	$page = new PageAdm();
@@ -206,12 +208,16 @@ $app->get("/admin/categories",function(){
 
 $app->get("/admin/categories/create",function(){
 
+	User::verifyLogin();
+
 	$page = new PageAdm();
 	$page->setTpl("categories-create");
 
 });
 
 $app->post("/admin/categories/create",function(){
+
+	User::verifyLogin();
 
 	$category = new Category();
 
@@ -220,6 +226,47 @@ $app->post("/admin/categories/create",function(){
 	$category->save();
 
 	header('Location: /admin/categories');
+	exit;
+
+});
+
+$app->get("/admin/categories/:idcategory/delete",function($idcategory){
+
+	User::verifyLogin();
+
+	$category = new Category();
+	$category->get((int)$idcategory);
+	$category->delete();
+
+	header('Location: /admin/categories');
+	exit;
+
+});
+
+$app->get("/admin/categories/:idcategory",function($idcategory){
+
+	User::verifyLogin();
+
+	$category = new Category();
+	$category->get((int)$idcategory);
+
+	$page = new PageAdm();
+	$page->setTpl("categories-update",['category'=>$category->getValues()]);
+
+});
+
+$app->post("/admin/categories/:idcategory",function($idcategory){
+
+	User::verifyLogin();
+
+	$category = new Category();
+	$category->get((int)$idcategory);
+
+	$category->setData($_POST);
+	$category->save();
+
+	header("Location: /admin/categories");
+	exit;
 
 });
 
