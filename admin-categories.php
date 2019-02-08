@@ -3,6 +3,7 @@
 use \NC\PageAdm;
 use \NC\Models\User;
 use \NC\Models\Category;
+use \NC\Models\Products;
 
 //ROTAS CRUD CATEGORIAS **********************************************************************
 
@@ -95,6 +96,36 @@ $app->get("/admin/categories/:idcategory/products",function($idcategory){
 		'productsRelated'=>$category->getProducts(),
 		'productsNotRelated'=>$category->getProducts(false)
 	]);
+
+});
+
+$app->get("/admin/categories/:idcategory/products/:idproduct/remove",function($idcategory,$idproduct){
+
+	User::verifyLogin();
+	$category = new Category();
+	$category->get((int)$idcategory);
+
+	$products = new products();
+	$products->get((int)$idproduct);
+
+	$category->removeProducts($products);
+
+	header("Location: /admin/categories/".$idcategory."/products");
+	exit;
+});
+
+$app->get("/admin/categories/:idcategory/products/:idproduct/add",function($idcategory,$idproduct){
+
+	$category = new Category();
+	$category->get((int)$idcategory);
+
+	$products = new Products();
+	$products->get((int)$idproduct);
+
+	$category->addProducts($products);
+
+	header("Location: /admin/categories/".$idcategory."/products");
+	exit;
 
 });
 

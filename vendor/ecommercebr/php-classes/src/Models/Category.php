@@ -95,6 +95,28 @@ class Category extends Model{
 			);",[':idcategory'=>$this->getidcategory()]);
 		}
 	}
+
+
+	public function removeProducts(Products $product){
+
+		$sql = new Sql();
+
+		$sql->query("DELETE FROM tb_productscategories WHERE idcategory = :idcategory AND idproduct = :idproduct", [':idcategory'=>$this->getidcategory(),
+			':idproduct'=>$product->getidproduct()
+			 ]);
+
+	}
+
+	public function addProducts(Products $product){
+
+		$sql = new Sql();
+
+		$sql->query("INSERT INTO tb_productscategories (idcategory, idproduct) VALUES(:idcategory, :idproduct)", [
+					':idcategory'=>$this->getidcategory(),
+					':idproduct'=>$product->getidproduct()
+		]);
+	}
+
 }
 
 ?>
