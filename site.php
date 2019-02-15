@@ -3,6 +3,7 @@
 use \NC\Page;
 use \NC\Models\Products;
 use \NC\Models\Category;
+use \NC\Models\Cart;
 
 //ROTAS SITE PRINCIPAL ***************************************************
 
@@ -61,6 +62,17 @@ $app->get("/products/:desurl",function($desurl){
 		'categories'=>$product->getCategories()
 	]);
 
+
+});
+
+
+$app->get("/cart",function(){
+
+	$cart = Cart::getFromSession();
+
+	$page = new Page();
+
+	$page->setTpl("cart");
 
 });
 
