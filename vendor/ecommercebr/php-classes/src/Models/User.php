@@ -38,7 +38,7 @@ class User extends Model{
 			return false;
 		} else {
 
-			if($inadmin === tru && (bool)$_SESSION[User::SESSION]['inadmin'] === true){
+			if($inadmin === true && (bool)$_SESSION[User::SESSION]['inadmin'] === true){
 
 				return true;
 
@@ -85,7 +85,7 @@ class User extends Model{
 	public static function verifyLogin($inadmin = true){
 
 		if(User::checkLogin($inadmin)){
-			
+
 			header("Location: /admin/login");
 			exit;
 		}

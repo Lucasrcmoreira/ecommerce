@@ -149,8 +149,6 @@ class Products extends Model{
 
 
 
-
-
 }
 
 ?>
