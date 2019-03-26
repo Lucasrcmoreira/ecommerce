@@ -26,31 +26,40 @@ class User extends Model{
 
 	}
 
-	public static function checkLogin($inadmin = true){
-
-		if(!isset($_SESSION[User::SESSION]) 
-			|| 
-			!$_SESSION[User::SESSION] 
-			|| 
-			!(int)$_SESSION[User::SESSION]["iduser"] > 0 ){
-
-			//Nao esta logado
+	public static function checkLogin($inadmin = true)
+	{
+		if (
+			!isset($_SESSION[User::SESSION])
+			||
+			!$_SESSION[User::SESSION]
+			||
+			!(int)$_SESSION[User::SESSION]["iduser"] > 0
+		) {
+			//Não está logado
 			return false;
 		} else {
-
-			if($inadmin === true && (bool)$_SESSION[User::SESSION]['inadmin'] === true){
-
+			if ($inadmin === true && (bool)$_SESSION[User::SESSION]['inadmin'] === true) {
 				return true;
-
-			}else if($inadmin === false){
-
+			} else if ($inadmin === false) {
 				return true;
-			} else{
-
+			} else {
 				return false;
 			}
 		}
 	}
+
+	public static function verifyLogin($inadmin = true)
+	{
+		if (!User::checkLogin($inadmin)) {
+			if ($inadmin) {
+				header("Location: /admin/login");
+			} else {
+				header("Location: /login");
+			}
+			exit;
+		}
+	}
+
 
 	public static function login($login,$password){
 
@@ -71,6 +80,8 @@ class User extends Model{
 
 			$user = new User();
 
+			$data['desperson'] = utf8_encode($data['desperson']);
+
 			$user->setData($data);
 
 			$_SESSION[User::SESSION] = $user->getValues();
@@ -82,15 +93,7 @@ class User extends Model{
 		}
 	}
 
-	public static function verifyLogin($inadmin = true){
-
-		if(User::checkLogin($inadmin)){
-
-			header("Location: /admin/login");
-			exit;
-		}
-	}
-
+	
 	public static function logout(){
 
 		$_SESSION[User::SESSION] = NULL;

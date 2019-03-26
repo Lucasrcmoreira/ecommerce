@@ -191,7 +191,7 @@ class Cart extends Model{
 				'sCdAvisoRecebimento'=>'S'
 			]);
 
-			$xml = simplexml_load_file("https://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx/CalcPrecoPrazo?".$qts);
+			$xml = simplexml_load_file("http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx/CalcPrecoPrazo?".$qts);
 
 			$result = $xml->Servicos->cServico;
 

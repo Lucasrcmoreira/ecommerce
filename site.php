@@ -4,6 +4,8 @@ use \NC\Page;
 use \NC\Models\Products;
 use \NC\Models\Category;
 use \NC\Models\Cart;
+use \NC\Models\Address;
+use \NC\Models\User;
 
 //ROTAS SITE PRINCIPAL ***************************************************
 
@@ -132,6 +134,22 @@ $app->post("/cart/freight",function(){
 
 	header('Location: /cart');
 	exit;
+
+});
+
+$app->get("/checkout",function(){
+
+	User::verifyLogin();
+
+	$cart =Cart::getFromSession();
+	$address = new Address();
+	$page = new Page();
+	$page->setTpl("checkout",[	
+		'cart'=>$cart->getValues(),
+		'address'=>$address->getValues()
+
+	]);
+
 
 });
 
