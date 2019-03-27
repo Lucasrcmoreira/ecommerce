@@ -11,7 +11,8 @@ class User extends Model{
 
 	const SESSION = "User";
 	const SECRET = "lucascommerce-st";
-	const ERROR = "LoginError";
+	const ERROR_LOGIN = "LoginError";
+	const ERROR_REGISTER = "RegisterError";
 
 	public function getFromSession(){
 
@@ -102,20 +103,36 @@ class User extends Model{
 
 	}
 
-	public static function getError(){
-		$msgError = (isset($_SESSION[User::ERROR]) && $_SESSION[User::ERROR]) ? $_SESSION[User::ERROR] : '';
-		User::clearError();
+	public static function getErrorLogin(){
+		$msgError = (isset($_SESSION[User::ERROR_LOGIN]) && $_SESSION[User::ERROR_LOGIN]) ? $_SESSION[User::ERROR_LOGIN] : '';
+		User::clearErrorLogin();
 
 		return $msgError;
 	}
 
-	public static function setError($msgError){
-		$_SESSION[User::ERROR] = $msgError ;
+	public static function setErrorLogin($msgError){
+		$_SESSION[User::ERROR_LOGIN] = $msgError ;
 	}
 
-	public static function clearError(){
-		$_SESSION[User::ERROR] = NULL ;
+	public static function clearErrorLogin(){
+		$_SESSION[User::ERROR_LOGIN] = NULL ;
 	}
+
+	public static function getErrorRegister(){
+		$msgError = (isset($_SESSION[User::ERROR_REGISTER]) && $_SESSION[User::ERROR_REGISTER]) ? $_SESSION[User::ERROR_REGISTER] : '' ; 
+		User::clearErrorRegister();
+		return $msgError;
+	}
+
+	public static function setErrorRegister($msgError){
+		$_SESSION[User::ERROR_REGISTER] =$msgError ;
+	}
+
+	public static function clearErrorRegister(){
+		$_SESSION[User::ERROR_REGISTER] = NULL;
+	}
+
+
 
 	public static function listAll(){
 
@@ -286,6 +303,16 @@ class User extends Model{
 	public static function getPasswordHash($password){
 
 		return password_hash($password, PASSWORD_DEFAULT,['cost'=>12]);
+	}
+
+	public static function checkLoginExist($login){
+		$sql = new Sql();
+
+		$result = $sql->select("SELECT deslogin FROM tb_users WHERE deslogin = :deslogin",[
+			':deslogin'=>$login
+		]);
+
+		return (count($result[0]) > 0);
 	}
 
 

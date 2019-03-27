@@ -156,7 +156,9 @@ $app->get("/login",function(){
 
 	$page = new Page();
 	$page->setTpl("login", [
-		'error'=>User::getError()
+		'Error_Login'=>User::getErrorLogin(),
+		'Error_Register'=>User::getErrorRegister(),
+		'ValuesRegister'=>(isset($_SESSION['ValuesRegister'])) ? $_SESSION['ValuesRegister'] : ['name'=>'','email'=>'','phone'=>'']
 	]);
 });
 
@@ -168,7 +170,7 @@ $app->post("/login",function(){
 
 	} catch (Exception $e) {
 		
-		User::setError($e->getMessage());
+		User::setErrorLogin($e->getMessage());
 	}
 
 	header("Location: /checkout");
@@ -185,5 +187,51 @@ $app->get("/logout",function(){
 
 });
 
+$app->post("/register",function(){
+
+	$_SESSION['ValuesRegister'] = $_POST;
+
+	if(!isset($_POST['name']) || $_POST['name'] == ''){
+
+		User::setErrorRegister("OPS ! o SR(A) esqueceu do campo nome");
+		header('Location: /login');
+		exit;
+
+	}else if(!isset($_POST['email']) || $_POST['email'] == ''){
+		User::setErrorRegister("OPS ! o SR(A) esqueceu do campo EMAIL");
+		header('Location: /login');
+		exit;
+	}else if(!isset($_POST['phone']) || $_POST['phone'] == ''){	
+		User::setErrorRegister("OPS ! o SR(A) esqueceu do campo TELEFONE");
+		header('Location: /login');
+		exit;
+	}else if(!isset($_POST['password']) || $_POST['password'] == ''){
+		User::setErrorRegister("OPS ! o SR(A) esqueceu do campo SENHA");
+		header('Location: /login');
+		exit;
+	}else if(User::checkLoginExist($_POST['email']) === true){
+		User::setErrorRegister("OPS ! Este endereço de EMAIL já está cadastrado ");
+		header('Location: /login');
+		exit;
+	}else{
+
+	$user= new User();
+	$user->setData([
+		'inadmin'=>0,
+		'deslogin'=>$_POST['email'],
+		'desperson'=>$_POST['name'],
+		'desemail'=>$_POST['email'],
+		'nrphone'=>$_POST['phone'],
+		'despassword'=>$_POST['password']
+	]);
+
+	$user->save();
+	User::login($_POST['email'],$_POST['password']);
+
+	header('Location: /checkout');
+	exit;
+	}
+
+});
 
 ?>
