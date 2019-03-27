@@ -11,6 +11,7 @@ class User extends Model{
 
 	const SESSION = "User";
 	const SECRET = "lucascommerce-st";
+	const ERROR = "LoginError";
 
 	public function getFromSession(){
 
@@ -37,12 +38,15 @@ class User extends Model{
 		) {
 			//Não está logado
 			return false;
+
 		} else {
 			if ($inadmin === true && (bool)$_SESSION[User::SESSION]['inadmin'] === true) {
 				return true;
 			} else if ($inadmin === false) {
+
 				return true;
 			} else {
+
 				return false;
 			}
 		}
@@ -65,7 +69,7 @@ class User extends Model{
 
 		$sql = new Sql();
 
-		$result = $sql->select("SELECT * FROM tb_users WHERE deslogin= :LOGIN",array(
+		$result = $sql->select("SELECT * FROM tb_users u INNER JOIN tb_persons p ON u.idperson = p.idperson WHERE u.deslogin= :LOGIN",array(
 					"LOGIN"=>$login
 		));
 
@@ -79,8 +83,6 @@ class User extends Model{
 		if(password_verify($password, $data["despassword"]) === true){
 
 			$user = new User();
-
-			$data['desperson'] = utf8_encode($data['desperson']);
 
 			$user->setData($data);
 
@@ -100,6 +102,21 @@ class User extends Model{
 
 	}
 
+	public static function getError(){
+		$msgError = (isset($_SESSION[User::ERROR]) && $_SESSION[User::ERROR]) ? $_SESSION[User::ERROR] : '';
+		User::clearError();
+
+		return $msgError;
+	}
+
+	public static function setError($msgError){
+		$_SESSION[User::ERROR] = $msgError ;
+	}
+
+	public static function clearError(){
+		$_SESSION[User::ERROR] = NULL ;
+	}
+
 	public static function listAll(){
 
 		$sql = new Sql();
@@ -117,7 +134,7 @@ class User extends Model{
 		$result = $sql->select("CALL sp_users_save(:desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)",array(
 					":desperson"=>$this->getdesperson(),
 					":deslogin"=>$this->getdeslogin(),
-					":despassword"=>$this->getdespassword(),
+					":despassword"=>User::getPasswordHash($this->getdespassword()),
 					":desemail"=>$this->getdesemail(),
 					":nrphone"=>$this->getnrphone(),
 					":inadmin"=>$this->getinadmin()
@@ -145,7 +162,7 @@ class User extends Model{
 					":iduser"=>$this->getiduser(),
 					":desperson"=>$this->getdesperson(),
 					":deslogin"=>$this->getdeslogin(),
-					":despassword"=>$this->getdespassword(),
+					":despassword"=>User::getPasswordHash($this->getdespassword()),
 					":desemail"=>$this->getdesemail(),
 					":nrphone"=>$this->getnrphone(),
 					":inadmin"=>$this->getinadmin()
@@ -264,6 +281,11 @@ class User extends Model{
 			array(":password"=>$password,
 				  ":iduser"=>$this->getiduser()
 		));
+	}
+
+	public static function getPasswordHash($password){
+
+		return password_hash($password, PASSWORD_DEFAULT,['cost'=>12]);
 	}
 
 

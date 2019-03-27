@@ -139,7 +139,7 @@ $app->post("/cart/freight",function(){
 
 $app->get("/checkout",function(){
 
-	User::verifyLogin();
+	User::verifyLogin(false);
 
 	$cart =Cart::getFromSession();
 	$address = new Address();
@@ -150,7 +150,40 @@ $app->get("/checkout",function(){
 
 	]);
 
+});
+
+$app->get("/login",function(){
+
+	$page = new Page();
+	$page->setTpl("login", [
+		'error'=>User::getError()
+	]);
+});
+
+$app->post("/login",function(){
+
+	try {
+		User::Login($_POST['login'],$_POST['password']);
+
+
+	} catch (Exception $e) {
+		
+		User::setError($e->getMessage());
+	}
+
+	header("Location: /checkout");
+	exit;
+	
+});
+
+$app->get("/logout",function(){
+
+	User::logout();
+
+	header("location: /login");
+	exit;
 
 });
+
 
 ?>
