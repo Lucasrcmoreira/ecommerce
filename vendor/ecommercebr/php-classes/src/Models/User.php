@@ -11,6 +11,7 @@ class User extends Model{
 
 	const SESSION = "User";
 	const SECRET = "lucascommerce-st";
+	const V_USER = "lucascommerce-vu";
 	const ERROR_LOGIN = "LoginError";
 	const ERROR_REGISTER = "RegisterError";
 
@@ -81,17 +82,19 @@ class User extends Model{
 
 		$data = $result[0];
 
-		if(password_verify($password, $data["despassword"]) === true){
+		if($data['validacao'] == 0){
+			throw new \Exception("Conta não validada entre em seu email para validar e siga as instruções, caso ja tenha passado de 48 horas que se registrou entre em contato com suporte");
+		}
 
+		else if(password_verify($password, $data["despassword"]) === true){
 			$user = new User();
-
 			$user->setData($data);
-
 			$_SESSION[User::SESSION] = $user->getValues();
 
 			return $user;
+		}
 
-		}else{
+		else{
 			throw new \Exception("Usuario não existe , ou senha inválida");
 		}
 	}
@@ -224,18 +227,12 @@ class User extends Model{
     		else{
 
     			$dataRecovery = $resultQuery[0];
-
 				$Cifra =  'AES-256-CBC';
-				$IV = random_bytes(openssl_cipher_iv_length($Cifra)); 
-
+				$IV = random_bytes(openssl_cipher_iv_length($Cifra));
 				$Texto = openssl_encrypt($dataRecovery["idrecovery"], $Cifra, User::SECRET, OPENSSL_RAW_DATA, $IV);
-
 				$code = base64_encode($IV.$Texto);
-
 				$link = "http://www.lucascommerce.com.br/admin/forgot/reset?code=$code";
-
 				$mailer = new Mailer($data["desemail"],$data["desperson"],"redefinir senha ecommerce", "forgot", array("name"=>$data["desperson"],"link"=>$link));
-
 				$mailer->send();
 
 				return $data;
@@ -243,17 +240,57 @@ class User extends Model{
     		}
 
     	}
+ 	}
 
+ 	public static function getForgotUser($email)
+	{
+    	$sql = new Sql();
 
+    	$results = $sql->select("SELECT * FROM tb_persons p INNER JOIN tb_users u 
+    							 USING(idperson) WHERE p.desemail = :email;",
+    							 array(":email"=>$email));
 
+    	if(count($results) === 0 ){
+    		throw new \Exception("Email já cadastrado");
+    		
+    	}else{
+    		
+    	$data = $results[0];
+    	$resultQuery = $sql->select("CALL sp_usersregister_create(:iduser,:desip)",array(
+    		':iduser'=>$data['iduser'],
+    		':desip'=>$_SERVER['REMOTE_ADDR']
+    	));
+
+    		if(count($resultQuery) === 0){
+    			throw new \Exception("Erro ao Cadastrar Tente Novamente á alguns minutos");
+    			
+    		}else{
+    			$dataRecovery = $resultQuery[0];
+    			$Cifra =  'AES-256-CBC';
+				$IV = random_bytes(openssl_cipher_iv_length($Cifra));
+				$Texto = openssl_encrypt($dataRecovery["idrecovery"], $Cifra, User::V_USER, OPENSSL_RAW_DATA, $IV);
+				$code = base64_encode($IV.$Texto);
+				$code = str_replace('+', '-', $code);
+				$link = "http://www.lucascommerce.com.br/forgot-sucess-Register?code=$code";
+				$mailer = new Mailer($data["desemail"],$data["desperson"],"Validação email ecommerce", "forgot-validacao", array("name"=>$data["desperson"],"link"=>$link));
+				$mailer->send();
+
+				$sql->query("UPDATE tb_usersregister SET ulink = :link WHERE iduser = :iduser ",array(":iduser"=>$data['iduser'],
+					":link"=>$code
+		));
+
+				return $data;
+
+    		}
+    	}
+    	
  	}
 
 	public static function validForgot($Resultado)
  	{
 	     $Resultado = base64_decode($Resultado);
 	     $Cifra =  'AES-256-CBC';
-		 $TextoCifrado = mb_substr($Resultado, openssl_cipher_iv_length($Cifra), null, '8bit');
-		
+		 $TextoCifrado = mb_substr($Resultado, openssl_cipher_iv_length($Cifra), null, '8bit');		
 		 $IV = mb_substr($Resultado, 0, openssl_cipher_iv_length($Cifra), '8bit');
 		 $idrecovery = openssl_decrypt($TextoCifrado, $Cifra, User::SECRET, OPENSSL_RAW_DATA, $IV);
 
@@ -282,11 +319,56 @@ class User extends Model{
 	     }
  	}
 
+ 	public static function validForgotUser($Resultado)
+ 	{
+ 		 $Rec = $Resultado;
+ 	     $sql = new Sql();
+	     $results = $sql->select("
+	         SELECT *
+	         FROM tb_usersregister a
+	         INNER JOIN tb_users b USING(iduser)
+	         INNER JOIN tb_persons c USING(idperson)
+	         WHERE
+	         a.ulink = :ulink
+	         AND
+	         a.dtrecovery IS NULL
+	         AND
+	         DATE_ADD(a.dtregister, INTERVAL 48 HOUR) >= NOW();
+	     ", array(
+	         ":ulink"=>$Rec
+	     ));
+
+	     if (count($results) === 0)
+	     {	
+
+	         throw new \Exception("Não foi possivel Validar seu código, Entre em contato com Suporte");
+	     }
+	     else
+	     {
+	         return $results[0];
+	     }
+ 	}
+
+ 	public static function setForgotUsedUser($idrecovery){
+
+		$sql = new Sql();
+		$sql->query("UPDATE tb_usersregister SET dtrecovery = NOW() WHERE idrecovery = :idrecovery ",array(":idrecovery"=>$idrecovery));
+
+	}
 
 	public static function setForgotUsed($idrecovery){
 
 		$sql = new Sql();
 		$sql->query("UPDATE tb_userspasswordsrecoveries SET dtrecovery = NOW() WHERE idrecovery = :idrecovery ",array(":idrecovery"=>$idrecovery
+		));
+
+	}
+
+	public function setValidacaoUser($idperson){
+
+		$sql = new Sql();
+		$sql->query("UPDATE tb_persons SET validacao = 1 WHERE idperson = :idperson",
+			array( ":idperson"=>$idperson
 		));
 
 	}
@@ -312,7 +394,7 @@ class User extends Model{
 			':deslogin'=>$login
 		]);
 
-		return (count($result[0]) > 0);
+		return (count($result) > 0);
 	}
 
 

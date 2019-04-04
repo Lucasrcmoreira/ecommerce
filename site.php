@@ -226,12 +226,56 @@ $app->post("/register",function(){
 	]);
 
 	$user->save();
-	User::login($_POST['email'],$_POST['password']);
+	
+	$user = User::getForgotUser($_POST['email']);
 
-	header('Location: /checkout');
+	header('Location: /forgot-sent-Register');
 	exit;
 	}
 
+});
+
+$app->get("/forgot-sent-Register",function(){
+
+
+	$page = new Page(["header"=>false,
+						 "footer"=>false
+	]);
+
+	$page->setTpl("forgot-sent-Register");
+});
+
+$app->get("/forgot-sucess-Register",function(){
+
+
+	$code = $_GET['code'];
+
+	
+
+	$forgotUser = User::validForgotUser($code);
+
+	User::setForgotUsedUser($forgotUser["idrecovery"]);
+
+	$user = new User();
+
+	$user->get((int)$forgotUser["iduser"]);
+
+	$user->setValidacaoUser($forgotUser["idperson"]);
+
+
+	$page = new Page(["header"=>false,
+						 "footer"=>false
+	]);
+
+	$page->setTpl("forgot-success-Register");
+
+
+
+});
+
+$app->post("/forgot-sucess-Register",function(){
+
+	
 });
 
 ?>
