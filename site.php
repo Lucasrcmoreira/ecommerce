@@ -23,6 +23,7 @@ $app->get('/', function() {
 
 });
 
+// ####################### Categorias #############################
 
 $app->get("/categories/:idcategory",function($idcategory){
 
@@ -67,6 +68,7 @@ $app->get("/products/:desurl",function($desurl){
 
 });
 
+// ####################### Carrinho de Compras #############################
 
 $app->get("/cart",function(){
 
@@ -137,6 +139,8 @@ $app->post("/cart/freight",function(){
 
 });
 
+// ####################### Login Usuario  #############################
+
 $app->get("/checkout",function(){
 
 	User::verifyLogin(false);
@@ -187,6 +191,7 @@ $app->get("/logout",function(){
 
 });
 
+// ####################### Cadastro Usuario com email de verificação #############################
 $app->post("/register",function(){
 
 	$_SESSION['ValuesRegister'] = $_POST;
@@ -247,10 +252,7 @@ $app->get("/forgot-sent-Register",function(){
 
 $app->get("/forgot-sucess-Register",function(){
 
-
 	$code = $_GET['code'];
-
-	
 
 	$forgotUser = User::validForgotUser($code);
 
@@ -269,13 +271,67 @@ $app->get("/forgot-sucess-Register",function(){
 
 	$page->setTpl("forgot-success-Register");
 
+});
 
+// ####################### Esqueci a Senha Usuario #############################
+
+$app->get("/forgot",function(){
+
+	$page = new Page();
+
+	$page->setTpl("forgot");
 
 });
 
-$app->post("/forgot-sucess-Register",function(){
+$app->post("/forgot",function(){
 
-	
+	$user = User::getForgot($_POST["email"],false);
+
+	header("Location: /forgot/send");
+	exit;
+});
+
+$app->get("/forgot/send",function(){
+
+	$page = new Page();
+
+	$page->setTpl("forgot-sent");
+
+});
+
+$app->get("/forgot/reset",function(){
+
+	$code = $_GET["code"];
+	$code = str_replace(' ', '+', $code);
+
+	$user = User::validForgot($code);
+
+	$page = new Page();
+	$page->setTpl("forgot-reset",array(
+								"name"=>$user["desperson"],
+								"code"=>$_GET["code"]
+	));
+
+});
+
+$app->post("/forgot/reset",function(){
+
+	$code = $_POST["code"];
+	$code = str_replace(' ', '+', $code);
+	$forgot = User::validForgot($code);
+
+	User::setForgotUsed($forgot["idrecovery"]);
+
+	$password = password_hash($_POST["password"], PASSWORD_DEFAULT, ["cost"=>12]);
+
+	$user = new User();
+	$user->get((int)$forgot["iduser"]);
+	$user->setPassword($password);
+
+	$page = new Page();
+
+	$page->setTpl("forgot-reset-success");
+
 });
 
 ?>

@@ -199,7 +199,7 @@ class User extends Model{
 		));
 	}
 
-	public static function getForgot($email)
+	public static function getForgot($email, $inadmin = true)
 	{
     	$sql = new Sql();
 
@@ -231,7 +231,13 @@ class User extends Model{
 				$IV = random_bytes(openssl_cipher_iv_length($Cifra));
 				$Texto = openssl_encrypt($dataRecovery["idrecovery"], $Cifra, User::SECRET, OPENSSL_RAW_DATA, $IV);
 				$code = base64_encode($IV.$Texto);
-				$link = "http://www.lucascommerce.com.br/admin/forgot/reset?code=$code";
+
+				if($inadmin === true){
+					$link = "http://www.lucascommerce.com.br/admin/forgot/reset?code=$code";
+				}else{
+					$link = "http://www.lucascommerce.com.br/forgot/reset?code=$code";
+				}
+
 				$mailer = new Mailer($data["desemail"],$data["desperson"],"redefinir senha ecommerce", "forgot", array("name"=>$data["desperson"],"link"=>$link));
 				$mailer->send();
 
