@@ -75,7 +75,10 @@ $app->get("/admin/forgot/send",function(){
 
 $app->get("/admin/forgot/reset",function(){
 
-	$user = User::validForgot($_GET["code"]);
+	$code = $_GET["code"];
+	$code = str_replace(" ", "+", $code);
+
+	$user = User::validForgot($code);
 
 	$page = new PageAdm(["header"=>false,
 					 	 "footer"=>false
@@ -90,7 +93,10 @@ $app->get("/admin/forgot/reset",function(){
 
 $app->post("/admin/forgot/reset",function(){
 
-	$forgot = User::validForgot($_POST["code"]);
+	$code = $_POST["code"];
+	$code = str_replace(" ", "+", $code);
+
+	$forgot = User::validForgot($code);
 
 	User::setForgotUsed($forgot["idrecovery"]);
 

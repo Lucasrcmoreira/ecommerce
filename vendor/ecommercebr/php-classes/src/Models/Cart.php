@@ -163,6 +163,9 @@ class Cart extends Model{
 
 	public function setFreight($clientezipcode){
 
+		if(isset($clientezipcode) || $clientezipcode === ''){
+			Cart::setMsgError("OPS !! preencha o CPF ");
+		}
 
 		$clientezipcode = str_replace('-', '', $clientezipcode);
 		$totals = $this->getProductsTotals();

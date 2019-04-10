@@ -75,7 +75,7 @@ $app->get("/cart",function(){
 	$cart = Cart::getFromSession();
 
 	$page = new Page();
-
+	
 	$page->setTpl("cart",[
 		'cart'=>$cart->getValues(),
 		'products'=>$cart->getProducts(),
@@ -132,6 +132,12 @@ $app->get("/cart/:idproduct/all/removed",function($idproduct){
 $app->post("/cart/freight",function(){
 
 	$cart = Cart::getFromSession();
+	if (isset($_POST['zipcode']) || $_POST['zipcode'] === '') {
+		Cart::setMsgError("OPS !! preencha campo CEP  para continuar !!");
+		header('Location: /cart');
+		exit;
+	}
+
 	$cart->setFreight($_POST['zipcode']);
 
 	header('Location: /cart');
@@ -145,13 +151,36 @@ $app->get("/checkout",function(){
 
 	User::verifyLogin(false);
 
-	$cart =Cart::getFromSession();
 	$address = new Address();
+	$cart =Cart::getFromSession();
+
+	if(isset($_GET['zipcode'])){
+		$_GET['deszipcode'] =$cart->getdeszipcode();
+	}
+
+	if(isset($_GET['zipcode'])){
+		$nmrcep = str_replace("-", "", $_GET['zipcode']);
+		$address->loadFromCEP($nmrcep);
+		$cart->setdeszipcode($nmrcep);
+		$cart->save();
+
+		$cart->getCalcTotalFreight();
+	}
+
+	if(!$address->getdesaddress()) $address->getdesaddress('');
+	if(!$address->getdescomplement()) $address->getdescomplement('');
+	if(!$address->getdesdistrict()) $address->getdesdistrict('');
+	if(!$address->getdescity()) $address->getdescity('');
+	if(!$address->getdesstate()) $address->getdesstate('');
+	if(!$address->getdescountry()) $address->getdescountry('');
+	if(!$address->getdeszipcode()) $address->getdeszipcode('');
+
 	$page = new Page();
 	$page->setTpl("checkout",[	
 		'cart'=>$cart->getValues(),
-		'address'=>$address->getValues()
-
+		'address'=>$address->getValues(),
+		'products'=>$cart->getProducts(),
+		'error'=>Address::getMsgError()
 	]);
 
 });
@@ -331,6 +360,117 @@ $app->post("/forgot/reset",function(){
 	$page = new Page();
 
 	$page->setTpl("forgot-reset-success");
+
+});
+
+// ####################### Minha conta Profile Usuario #############################
+
+$app->get("/profile",function(){
+	User::verifyLogin(false);
+
+	$user= User::getFromSession();
+
+	$page =new Page();
+
+	$page->setTpl("profile",[
+		'user'=>$user->getValues(),
+		'profileMsg'=>User::getMsgSuccess(),
+		'profileError'=>User::getError()
+	]);
+
+});
+
+$app->post("/profile",function(){
+	User::verifyLogin(false);
+
+	if(!isset($_POST['desperson']) || $_POST['desperson'] ===''){
+		User::setError(" OPS !! Preencha o seu NOME ");
+		header('Location: /profile');
+		exit;
+	}
+	if(!isset($_POST['desemail']) || $_POST['desemail'] ===''){
+		User::setError(" OPS !! Preencha o seu E-MAIL ");
+		header('Location: /profile');
+		exit;
+	}
+
+	$user = User::getFromSession();
+
+	if($_POST['desemail'] !== $user->getdesemail() ){
+		if (User::checkLoginExist($_POST['desemail']) === true){
+			User::setError(" OPS !! Este E-MAIL já está cadastrado");
+			header('Location: /profile');
+		    exit;
+		}
+	}
+
+	$_POST['iduser'] = $user->getiduser();
+	$_POST['inadmin'] = $user->getinadmin();
+	$_POST['despassword'] = $user->getdespassword();
+	$_POST['deslogin'] = $_POST['desemail'];
+	$user->setData($_POST);
+	$user->update();
+
+	User::setMsgSuccess(" Dados alterados com sucesso !! ");
+	$_SESSION[User::SESSION] = $user->getValues();
+
+	header("Location: /profile");
+	exit;
+
+});
+
+// ####################### WEB SERVICE CEP #############################
+
+$app->post("/checkout",function(){
+
+	User::verifyLogin(false);
+
+	if(!isset($_POST['zipcode']) || $_POST['zipcode'] === ''){
+		Address::setMsgError("OPS !! preencha o campo CEP ");
+		header('Location: /checkout');
+		exit;
+	}
+	if(!isset($_POST['desaddress']) || $_POST['desaddress'] === ''){
+		Address::setMsgError("OPS !! preencha o campo ENDEREÇO ");
+		header('Location: /checkout');
+		exit;
+	}
+
+	if(!isset($_POST['desdistrict']) || $_POST['desdistrict'] === ''){
+		Address::setMsgError("OPS !! preencha o campo BAIRRO ");
+		header('Location: /checkout');
+		exit;
+	}
+	if(!isset($_POST['descity']) || $_POST['descity'] === ''){
+		Address::setMsgError("OPS !! preencha o campo CIDADE ");
+		header('Location: /checkout');
+		exit;
+	}
+	if(!isset($_POST['desstate']) || $_POST['desstate'] === ''){
+		Address::setMsgError("OPS !! preencha o campo ESTADO ");
+		header('Location: /checkout');
+		exit;
+	}
+	if(!isset($_POST['descountry']) || $_POST['descountry'] === ''){
+		Address::setMsgError("OPS !! preencha o campo PAÍS ");
+		header('Location: /checkout');
+		exit;
+	}
+
+
+	$user = User::getFromSession();
+
+	$address = new Address();
+
+	$_POST['deszipcode'] = $_POST['zipcode'];
+	$_POST['idperson'] = $user->getidperson();
+
+	$address->setData($_POST);
+
+	$address->save();
+
+	header("Location: /order");
+	exit;
 
 });
 

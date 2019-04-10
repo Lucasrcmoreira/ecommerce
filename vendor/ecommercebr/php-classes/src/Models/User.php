@@ -14,6 +14,8 @@ class User extends Model{
 	const V_USER = "lucascommerce-vu";
 	const ERROR_LOGIN = "LoginError";
 	const ERROR_REGISTER = "RegisterError";
+	const MSG_SUCCESS = "UserSuccess";
+	const ERROR_USER = "UserError";
 
 	public function getFromSession(){
 
@@ -75,7 +77,11 @@ class User extends Model{
 					"LOGIN"=>$login
 		));
 
-		if(count($result) === 0)
+		$result2 = $sql->select("SELECT * FROM tb_persons u INNER JOIN tb_users p ON u.idperson = p.idperson WHERE p.deslogin= :LOGIN",array(
+					"LOGIN"=>$login
+		));
+
+		if(count($result) === 0 )
 		{
 			throw new \Exception("Usuario não existe , ou senha inválida");
 		}
@@ -86,7 +92,7 @@ class User extends Model{
 			throw new \Exception("Conta não validada entre em seu email para validar e siga as instruções, caso ja tenha passado de 48 horas que se registrou entre em contato com suporte");
 		}
 
-		else if(password_verify($password, $data["despassword"]) === true){
+		else if(password_verify($password, $data["despassword"]) === true || $result["deslogin"] != $result2['desperson']){
 			$user = new User();
 			$user->setData($data);
 			$_SESSION[User::SESSION] = $user->getValues();
@@ -182,7 +188,7 @@ class User extends Model{
 					":iduser"=>$this->getiduser(),
 					":desperson"=>$this->getdesperson(),
 					":deslogin"=>$this->getdeslogin(),
-					":despassword"=>User::getPasswordHash($this->getdespassword()),
+					":despassword"=>$this->getdespassword(),
 					":desemail"=>$this->getdesemail(),
 					":nrphone"=>$this->getnrphone(),
 					":inadmin"=>$this->getinadmin()
@@ -403,6 +409,36 @@ class User extends Model{
 		return (count($result) > 0);
 	}
 
+	public static function getMsgSuccess(){
+		$msgSuccess = (isset($_SESSION[User::MSG_SUCCESS]) && $_SESSION[User::MSG_SUCCESS]) ? $_SESSION[User::MSG_SUCCESS] : '';
+		User::clearMsgSuccess();
+
+		return $msgSuccess;
+	}
+
+	public static function setMsgSuccess($msgSuccess){
+		$_SESSION[User::MSG_SUCCESS] = $msgSuccess ;
+	}
+
+	public static function clearMsgSuccess(){
+		$_SESSION[User::MSG_SUCCESS] = NULL ;
+	}
+
+	public static function getError(){
+		$msgError = (isset($_SESSION[User::ERROR_USER]) && $_SESSION[User::ERROR_USER]) ? $_SESSION[User::ERROR_USER] : '' ; 
+		User::clearError();
+		return $msgError;
+	}
+
+	public static function setError($msgError){
+		$_SESSION[User::ERROR_USER] = $msgError ;
+	}
+
+	public static function clearError(){
+		$_SESSION[User::ERROR_USER] = NULL ;
+	}
+
+	
 
 }
 
